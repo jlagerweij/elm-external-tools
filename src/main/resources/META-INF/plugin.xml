@@ -1,0 +1,43 @@
+<idea-plugin>
+    <id>org.elm.tools.external</id>
+    <name>ElmExternalTools</name>
+    <version>1.0.0</version>
+    <vendor url="http://www.github.com/jlagerweij">
+        Jos Lagerweij
+    </vendor>
+
+    <description><![CDATA[
+      <p>
+        Provides external tools for the <a href="http://elm-lang.org">Elm</a> programming language.
+      </p>
+
+      External tools:<br>
+      <ul>
+        <li>Annotations using elm-make</li>
+      </ul>
+    ]]></description>
+
+    <change-notes><![CDATA[
+      Release 1.0.0: Initial release.<br>
+    ]]>
+    </change-notes>
+
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
+    <idea-version since-build="162"/>
+
+    <depends>com.intellij.modules.lang</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <projectService serviceImplementation="org.elm.tools.external.settings.ElmPluginSettings"/>
+        <projectConfigurable instance="org.elm.tools.external.settings.ElmPluginSettingsPage"/>
+
+        <externalAnnotator language="Elm" implementationClass="org.elm.tools.external.annotator.ElmMakeExternalAnnotator" />
+    </extensions>
+
+    <application-components>
+        <component>
+            <implementation-class>org.elm.tools.external.ElmExternalToolsComponent</implementation-class>
+        </component>
+    </application-components>
+
+</idea-plugin>

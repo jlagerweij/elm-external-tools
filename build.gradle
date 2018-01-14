@@ -1,0 +1,16 @@
+plugins {
+    id "org.jetbrains.intellij" version "0.2.17"
+}
+
+intellij {
+    pluginName 'elm-external-tools'
+    version '2017.3.2'
+    downloadSources true
+
+    plugins = ['org.elm.klazuka:0.9.1']
+}
+
+repositories {
+    mavenCentral()
+}
+
