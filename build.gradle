@@ -6,11 +6,12 @@ intellij {
     pluginName 'elm-external-tools'
     version '2017.3.2'
     downloadSources true
-
-    plugins = ['org.elm.klazuka:0.9.1']
+    updateSinceUntilBuild false //Disables updating since-build attribute in plugin.xml
 }
 
 repositories {
     mavenCentral()
 }
 
+group 'org.elm.tools.external'
+version '1.0.1'
