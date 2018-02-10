@@ -9,6 +9,11 @@ intellij {
     updateSinceUntilBuild false //Disables updating since-build attribute in plugin.xml
 }
 
+publishPlugin {
+    username publishUsername
+    password publishPassword
+}
+
 repositories {
     mavenCentral()
 }
