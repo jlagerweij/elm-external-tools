@@ -10,13 +10,13 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.Editor;
 
 import org.elm.tools.external.ElmExternalToolsComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -27,8 +27,12 @@ import java.util.stream.Collectors;
 public class ElmMake {
     private static final Logger LOG = Logger.getInstance(ElmExternalToolsComponent.class);
 
-    public static List<Problems> execute(Editor editor, String workDirectory, String elmMakeExePath, String file) {
-        GeneralCommandLine commandLine = createGeneralCommandLine(elmMakeExePath);
+    private ElmMake() {
+        // Private constructor to hide the implicit public one
+    }
+
+    public static List<Problems> execute(String workDirectory, String nodePath, String elmMakeExePath, String file) {
+        GeneralCommandLine commandLine = createGeneralCommandLine(nodePath, elmMakeExePath);
         commandLine.setWorkDirectory(workDirectory);
         commandLine.addParameter("--report=json");
         commandLine.addParameter("--output=/dev/null");
@@ -44,7 +48,7 @@ public class ElmMake {
             process.waitFor();
             LOG.debug("elm-make exit value: " + process.exitValue());
             if (process.exitValue() == 1) {
-                return parseElmMakeOutput(editor, process.getInputStream(), process.getErrorStream());
+                return parseElmMakeOutput(process.getInputStream(), process.getErrorStream());
             }
 
         } catch (ExecutionException | InterruptedException e) {
@@ -53,7 +57,7 @@ public class ElmMake {
         return new ArrayList<>();
     }
 
-    public static List<Problems> parseElmMakeOutput(Editor editor, InputStream inputStream, InputStream errorStream) {
+    public static List<Problems> parseElmMakeOutput(InputStream inputStream, InputStream errorStream) {
         List<Problems> allProblems = new ArrayList<>();
         String output = null;
         try {
@@ -95,8 +99,8 @@ public class ElmMake {
         return !line.startsWith("[");
     }
 
-    public static String getVersion(String elmMakeExePath) throws Exception {
-        GeneralCommandLine commandLine = createGeneralCommandLine(elmMakeExePath);
+    public static String getVersion(final String nodePath, String elmMakeExePath) throws ExecutionException, InterruptedException, IOException {
+        GeneralCommandLine commandLine = createGeneralCommandLine(nodePath, elmMakeExePath);
         commandLine.addParameter("--help");
         Process process = commandLine.createProcess();
         process.waitFor();
@@ -109,13 +113,25 @@ public class ElmMake {
         }
     }
 
+    public static boolean fileStartsWithShebang(final String elmMakeExePath) {
+        if (elmMakeExePath.isEmpty() || !new File(elmMakeExePath).exists()) {
+            return false;
+        }
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(elmMakeExePath))) {
+            final String firstLine = bufferedReader.readLine();
+            return firstLine.startsWith("#!");
+        } catch (IOException e) {
+            LOG.error("Could not read elm-make: " + elmMakeExePath);
+        }
+        return false;
+    }
+
     @NotNull
-    private static GeneralCommandLine createGeneralCommandLine(String elmMakeExePath) {
+    private static GeneralCommandLine createGeneralCommandLine(final String nodePath, String elmMakeExePath) {
         GeneralCommandLine commandLine = new GeneralCommandLine();
 
-        File directory = new File(elmMakeExePath).getParentFile();
-        File nodeExePath = new File(directory, "node");
-        if (nodeExePath.exists()) {
+        File nodeExePath = new File(nodePath);
+        if (fileStartsWithShebang(elmMakeExePath) && nodeExePath.exists()) {
             commandLine.setExePath(nodeExePath.getAbsolutePath());
             commandLine.addParameter(elmMakeExePath);
         } else {

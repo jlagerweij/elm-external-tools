@@ -5,7 +5,6 @@ import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.util.TextRange;
@@ -16,7 +15,6 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 
-import org.elm.tools.external.ElmExternalToolsComponent;
 import org.elm.tools.external.elmmake.ElmMake;
 import org.elm.tools.external.elmmake.Problems;
 import org.elm.tools.external.elmmake.Region;
@@ -30,7 +28,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ElmMakeExternalAnnotator extends ExternalAnnotator<AnnotatorFile, List<Problems>> {
-    private static final Logger LOG = Logger.getInstance(ElmExternalToolsComponent.class);
     private static final String TAB = "    ";
 
     @Nullable
@@ -59,11 +56,10 @@ public class ElmMakeExternalAnnotator extends ExternalAnnotator<AnnotatorFile, L
     @Override
     public List<Problems> doAnnotate(final AnnotatorFile annotatorFile) {
         PsiFile file = annotatorFile.getFile();
-        Editor editor = annotatorFile.getEditor();
 
         ElmPluginSettings elmPluginSettings = ElmPluginSettings.getInstance(file.getProject());
 
-        if (!elmPluginSettings.pluginEnabled) {
+        if (!elmPluginSettings.isPluginEnabled()) {
             return Collections.emptyList();
         }
         if (!isValidPsiFile(file)) {
@@ -78,7 +74,7 @@ public class ElmMakeExternalAnnotator extends ExternalAnnotator<AnnotatorFile, L
 
         String canonicalPath = file.getVirtualFile().getCanonicalPath();
 
-        List<Problems> problems = ElmMake.execute(editor, basePath.get(), elmPluginSettings.elmMakeExecutable, canonicalPath);
+        List<Problems> problems = ElmMake.execute(basePath.get(), elmPluginSettings.getNodeExecutable(), elmPluginSettings.getElmMakeExecutable(), canonicalPath);
 
         return problems
                 .stream()
