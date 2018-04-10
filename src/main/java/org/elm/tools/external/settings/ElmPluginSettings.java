@@ -10,9 +10,13 @@ import org.jetbrains.annotations.Nullable;
 
 @State(name = "ElmPluginSettings")
 public class ElmPluginSettings implements PersistentStateComponent<ElmPluginSettings> {
-    private String elmMakeExecutable = "";
-    private String nodeExecutable = "";
-    private boolean pluginEnabled;
+    // Members need to be public for persisting preferences
+    @SuppressWarnings("WeakerAccess")
+    public String elmMakeExecutable = "";
+    @SuppressWarnings("WeakerAccess")
+    public String nodeExecutable = "";
+    @SuppressWarnings("WeakerAccess")
+    public boolean pluginEnabled;
 
     public static ElmPluginSettings getInstance(Project project) {
         return ServiceManager.getService(project, ElmPluginSettings.class);
