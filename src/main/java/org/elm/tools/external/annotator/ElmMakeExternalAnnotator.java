@@ -40,7 +40,7 @@ public class ElmMakeExternalAnnotator extends ExternalAnnotator<AnnotatorFile, L
 
     /** Called first; in our case, just return file and do nothing */
     @Override
-    @Nullable
+    @NotNull
     public AnnotatorFile collectInformation(@NotNull PsiFile file) {
         return new AnnotatorFile(file);
     }
@@ -116,7 +116,11 @@ public class ElmMakeExternalAnnotator extends ExternalAnnotator<AnnotatorFile, L
     }
 
     private void annotateForIssue(@NotNull AnnotationHolder holder, Document document, Problems issue, PsiFile file) {
-        TextRange selector = findAnnotationLocation(document, issue);
+        Optional<TextRange> optionalSelector = findAnnotationLocation(document, issue);
+        if (!optionalSelector.isPresent()) {
+            return;
+        }
+        final TextRange selector = optionalSelector.get();
 
         Annotation annotation;
         if (issue.type.equals("warning")) {
@@ -140,16 +144,20 @@ public class ElmMakeExternalAnnotator extends ExternalAnnotator<AnnotatorFile, L
     }
 
     @NotNull
-    private TextRange findAnnotationLocation(Document document, Problems issue) {
+    private Optional<TextRange> findAnnotationLocation(Document document, Problems issue) {
         Region region = issue.subregion != null ? issue.subregion : issue.region;
 
         int offsetStart = StringUtil.lineColToOffset(document.getText(), region.start.line - 1, region.start.column - 1);
         int offsetEnd = StringUtil.lineColToOffset(document.getText(), region.end.line - 1, region.end.column - 1);
 
+        if (offsetStart == -1 && offsetEnd == -1) {
+            return Optional.empty();
+        }
+
         if (isMultiLineRegion(region)) {
             offsetEnd = document.getLineEndOffset(region.start.line - 1);
         }
-        return new TextRange(offsetStart, offsetEnd);
+        return Optional.of(new TextRange(offsetStart, offsetEnd));
     }
 
     private boolean isMultiLineRegion(Region region) {
