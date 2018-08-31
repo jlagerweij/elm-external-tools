@@ -42,8 +42,8 @@ public class ElmPluginSettingsPage implements Configurable {
     private JCheckBox pluginEnabledCheckbox;
     private JPanel panel;
     private JLabel versionLabel;
-    private JLabel elmMakeExeLabel;
-    private TextFieldWithHistoryWithBrowseButton elmMakeField;
+    private JLabel elmExeLabel;
+    private TextFieldWithHistoryWithBrowseButton elmExeField;
     private TextFieldWithHistoryWithBrowseButton nodeExeField;
     private JLabel nodeExeLabel;
 
@@ -64,7 +64,7 @@ public class ElmPluginSettingsPage implements Configurable {
                 updateLaterInEDT();
             }
         };
-        elmMakeField.getChildComponent().getTextEditor().getDocument().addDocumentListener(docAdp);
+        elmExeField.getChildComponent().getTextEditor().getDocument().addDocumentListener(docAdp);
         nodeExeField.getChildComponent().getTextEditor().getDocument().addDocumentListener(docAdp);
     }
 
@@ -78,8 +78,8 @@ public class ElmPluginSettingsPage implements Configurable {
     }
 
     private void setEnabledState(boolean enabled) {
-        elmMakeField.setEnabled(enabled);
-        elmMakeExeLabel.setEnabled(enabled);
+        elmExeField.setEnabled(enabled);
+        elmExeLabel.setEnabled(enabled);
         nodeExeField.setEnabled(enabled);
         nodeExeLabel.setEnabled(enabled);
     }
@@ -89,7 +89,7 @@ public class ElmPluginSettingsPage implements Configurable {
     }
 
     private void updateVersion() {
-        final String elmMakePath = elmMakeField.getChildComponent().getText();
+        final String elmMakePath = elmExeField.getChildComponent().getText();
         final String nodePath = nodeExeField.getChildComponent().getText();
         if (ElmMake.fileStartsWithShebang(elmMakePath)) {
             nodeExeLabel.setVisible(true);
@@ -101,13 +101,13 @@ public class ElmPluginSettingsPage implements Configurable {
         getVersion(nodePath, elmMakePath);
     }
 
-    private void getVersion(String nodePath, String elmMakeExePath) {
+    private void getVersion(String nodePath, String elmExePath) {
         if (!pluginEnabledCheckbox.isSelected()) {
             versionLabel.setForeground(new DefaultColorsScheme().getDefaultForeground());
             versionLabel.setText("Disabled");
             return;
         }
-        if (ElmMake.fileStartsWithShebang(elmMakeExePath)) {
+        if (ElmMake.fileStartsWithShebang(elmExePath)) {
             if (StringUtils.isEmpty(nodePath)) {
                 return;
             }
@@ -116,15 +116,15 @@ public class ElmPluginSettingsPage implements Configurable {
                 return;
             }
         }
-        if (StringUtils.isEmpty(elmMakeExePath)) {
+        if (StringUtils.isEmpty(elmExePath)) {
             return;
         }
-        if (!new File(elmMakeExePath).exists()) {
-            showError("Elm-make not found: " + elmMakeExePath);
+        if (!new File(elmExePath).exists()) {
+            showError("Elm executable not found: " + elmExePath);
             return;
         }
         try {
-            String version = ElmMake.getVersion(nodePath, elmMakeExePath);
+            String version = ElmMake.getVersion(nodePath, elmExePath);
             versionLabel.setForeground(new DefaultColorsScheme().getDefaultForeground());
             versionLabel.setText("Version: " + version);
         } catch (Exception e) {
@@ -140,11 +140,11 @@ public class ElmPluginSettingsPage implements Configurable {
     }
 
     private void configElmMakeBinField() {
-        TextFieldWithHistory elmMakeExeTextFieldWithHistory = elmMakeField.getChildComponent();
+        TextFieldWithHistory elmMakeExeTextFieldWithHistory = elmExeField.getChildComponent();
         elmMakeExeTextFieldWithHistory.setHistorySize(-1);
         elmMakeExeTextFieldWithHistory.setMinimumAndPreferredWidth(0);
 
-        List<String> allElmMakeExeInPath = PathEnvironmentVariableUtil.findAllExeFilesInPath("elm-make")
+        List<String> allElmMakeExeInPath = PathEnvironmentVariableUtil.findAllExeFilesInPath("elm")
                                                                       .stream()
                                                                       .map(File::getAbsolutePath)
                                                                       .distinct()
@@ -152,7 +152,7 @@ public class ElmPluginSettingsPage implements Configurable {
 
         SwingHelper.addHistoryOnExpansion(elmMakeExeTextFieldWithHistory, () -> allElmMakeExeInPath);
 
-        SwingHelper.installFileCompletionAndBrowseDialog(project, elmMakeField, "Select Elm-Make Executable", FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
+        SwingHelper.installFileCompletionAndBrowseDialog(project, elmExeField, "Select Elm-Make Executable", FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
     }
 
     private void configNodeExeField() {
@@ -187,7 +187,7 @@ public class ElmPluginSettingsPage implements Configurable {
     @Override
     public JComponent createComponent() {
         loadSettings();
-        final String elmMakePath = elmMakeField.getChildComponent().getText();
+        final String elmMakePath = elmExeField.getChildComponent().getText();
         final String nodePath = nodeExeField.getChildComponent().getText();
         getVersion(nodePath, elmMakePath);
         addListeners();
@@ -197,7 +197,7 @@ public class ElmPluginSettingsPage implements Configurable {
     @Override
     public boolean isModified() {
         return pluginEnabledCheckbox.isSelected() != getSettings().isPluginEnabled()
-                || !elmMakeField.getChildComponent().getText().equals(getSettings().getElmMakeExecutable())
+                || !elmExeField.getChildComponent().getText().equals(getSettings().getElmMakeExecutable())
                 || !nodeExeField.getChildComponent().getText().equals(getSettings().getNodeExecutable());
     }
 
@@ -209,14 +209,14 @@ public class ElmPluginSettingsPage implements Configurable {
 
     private void saveSettings() {
         ElmPluginSettings settings = getSettings();
-        settings.save(pluginEnabledCheckbox.isSelected(), elmMakeField.getChildComponent().getText(), nodeExeField.getChildComponent().getText());
+        settings.save(pluginEnabledCheckbox.isSelected(), elmExeField.getChildComponent().getText(), nodeExeField.getChildComponent().getText());
         DaemonCodeAnalyzer.getInstance(project).restart();
     }
 
     private void loadSettings() {
         ElmPluginSettings settings = getSettings();
         pluginEnabledCheckbox.setSelected(settings.isPluginEnabled());
-        elmMakeField.getChildComponent().setText(settings.getElmMakeExecutable());
+        elmExeField.getChildComponent().setText(settings.getElmMakeExecutable());
         nodeExeField.getChildComponent().setText(settings.getNodeExecutable());
 
         setEnabledState(settings.isPluginEnabled());

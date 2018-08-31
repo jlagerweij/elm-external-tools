@@ -5,6 +5,7 @@ import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.util.TextRange;
@@ -15,6 +16,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 
+import org.elm.tools.external.ElmExternalToolsComponent;
 import org.elm.tools.external.elmmake.ElmMake;
 import org.elm.tools.external.elmmake.Problems;
 import org.elm.tools.external.elmmake.Region;
@@ -28,6 +30,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ElmMakeExternalAnnotator extends ExternalAnnotator<AnnotatorFile, List<Problems>> {
+    private static final Logger LOG = Logger.getInstance(ElmExternalToolsComponent.class);
     private static final String TAB = "    ";
 
     @Nullable
@@ -76,17 +79,20 @@ public class ElmMakeExternalAnnotator extends ExternalAnnotator<AnnotatorFile, L
 
         List<Problems> problems = ElmMake.execute(basePath.get(), elmPluginSettings.getNodeExecutable(), elmPluginSettings.getElmMakeExecutable(), canonicalPath);
 
-        return problems
+        final List<Problems> problemsForThisFile = problems
                 .stream()
                 .filter(res -> isIssueForCurrentFile(basePath.get(), canonicalPath, res))
                 .collect(Collectors.toList());
+
+        LOG.debug(problemsForThisFile.size() + " problems for file " + canonicalPath);
+        return problemsForThisFile;
     }
 
     private Optional<String> findElmPackageDirectory(PsiFile file) {
         final PsiDirectory[] parent = new PsiDirectory[1];
         ApplicationManager.getApplication().runReadAction(() -> {
             parent[0] = file.getParent();
-            while (parent[0] != null && parent[0].isValid() && parent[0].findFile("elm-package.json") == null) {
+            while (parent[0] != null && parent[0].isValid() && parent[0].findFile("elm-package.json") == null && parent[0].findFile("elm.json") == null) {
                 parent[0] = parent[0].getParent();
             }
 
@@ -170,25 +176,14 @@ public class ElmMakeExternalAnnotator extends ExternalAnnotator<AnnotatorFile, L
 
     @NotNull
     private String createToolTip(Problems issue) {
-        String previousLine = "";
         StringBuilder tooltip = new StringBuilder("<html><strong>" + issue.overview + "</strong><br/><hr/>");
+        tooltip.append("<tt>");
         String[] lines = issue.details.split("\\n");
         for (String line : lines) {
-            if (line.isEmpty()) {
-                continue;
-            }
-            if (!previousLine.startsWith(TAB) && line.startsWith(TAB)) {
-                tooltip.append("<pre style=\"font-weight:bold;\">");
-            } else if (previousLine.startsWith(TAB) && !line.startsWith(TAB)) {
-                tooltip.append("</pre>");
-            }
-            if (line.startsWith(TAB)) {
-                tooltip.append(line).append("\n");
-            } else {
-                tooltip.append(line).append("<br/>");
-            }
-            previousLine = line;
+            tooltip.append(line.replaceAll(" ", "&nbsp;"));
+            tooltip.append("<br/>");
         }
+        tooltip.append("</tt>");
         tooltip.append("</html>");
         return tooltip.toString();
     }

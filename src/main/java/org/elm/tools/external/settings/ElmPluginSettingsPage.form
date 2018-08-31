@@ -32,16 +32,16 @@
           </hspacer>
         </children>
       </grid>
-      <component id="f89d8" class="javax.swing.JLabel" binding="elmMakeExeLabel">
+      <component id="f89d8" class="javax.swing.JLabel" binding="elmExeLabel">
         <constraints>
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="1" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Elm-make executable"/>
-          <toolTipText value="Path to the scss-lint exe"/>
+          <text value="Elm executable"/>
+          <toolTipText value="Path to the Elm executable"/>
         </properties>
       </component>
-      <component id="31d32" class="com.intellij.ui.TextFieldWithHistoryWithBrowseButton" binding="elmMakeField">
+      <component id="31d32" class="com.intellij.ui.TextFieldWithHistoryWithBrowseButton" binding="elmExeField">
         <constraints>
           <grid row="1" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
@@ -72,7 +72,7 @@
         </constraints>
         <properties>
           <text value="Node executable"/>
-          <toolTipText value="Path to the scss-lint exe"/>
+          <toolTipText value="Path to the Node executable"/>
         </properties>
       </component>
     </children>
