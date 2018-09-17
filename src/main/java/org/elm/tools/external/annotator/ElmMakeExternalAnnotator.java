@@ -106,6 +106,9 @@ public class ElmMakeExternalAnnotator extends ExternalAnnotator<AnnotatorFile, L
     }
 
     private boolean isIssueForCurrentFile(String basePath, String canonicalPath, Problems res) {
+        if (res.file == null) {
+            return true;
+        }
         return res.file.replace("./", basePath + "/").equals(canonicalPath);
     }
 
@@ -152,6 +155,9 @@ public class ElmMakeExternalAnnotator extends ExternalAnnotator<AnnotatorFile, L
     @NotNull
     private Optional<TextRange> findAnnotationLocation(Document document, Problems issue) {
         Region region = issue.subregion != null ? issue.subregion : issue.region;
+        if (region == null) {
+            return Optional.empty();
+        }
 
         int offsetStart = StringUtil.lineColToOffset(document.getText(), region.start.line - 1, region.start.column - 1);
         int offsetEnd = StringUtil.lineColToOffset(document.getText(), region.end.line - 1, region.end.column - 1);
