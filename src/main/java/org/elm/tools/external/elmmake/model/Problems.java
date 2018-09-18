@@ -1,4 +1,4 @@
-package org.elm.tools.external.elmmake;
+package org.elm.tools.external.elmmake.model;
 
 public class Problems {
     public String tag;

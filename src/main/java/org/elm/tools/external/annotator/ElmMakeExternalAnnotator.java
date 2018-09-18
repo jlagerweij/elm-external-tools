@@ -18,8 +18,8 @@ import com.intellij.psi.PsiFile;
 
 import org.elm.tools.external.ElmExternalToolsComponent;
 import org.elm.tools.external.elmmake.ElmMake;
-import org.elm.tools.external.elmmake.Problems;
-import org.elm.tools.external.elmmake.Region;
+import org.elm.tools.external.elmmake.model.Problems;
+import org.elm.tools.external.elmmake.model.Region;
 import org.elm.tools.external.settings.ElmPluginSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 
 public class ElmMakeExternalAnnotator extends ExternalAnnotator<AnnotatorFile, List<Problems>> {
     private static final Logger LOG = Logger.getInstance(ElmExternalToolsComponent.class);
-    private static final String TAB = "    ";
 
     @Nullable
     @Override
@@ -148,7 +147,7 @@ public class ElmMakeExternalAnnotator extends ExternalAnnotator<AnnotatorFile, L
             theProblemSolver.weHaveGotNonIgnorableProblems(file.getVirtualFile(), Collections.singletonList(problem));
         }
 
-        String tooltip = createToolTip(issue);
+        String tooltip = createHtmlToolTip(issue);
         annotation.setTooltip(tooltip);
     }
 
@@ -181,7 +180,7 @@ public class ElmMakeExternalAnnotator extends ExternalAnnotator<AnnotatorFile, L
     }
 
     @NotNull
-    private String createToolTip(Problems issue) {
+    private String createHtmlToolTip(Problems issue) {
         StringBuilder tooltip = new StringBuilder("<html><strong>" + issue.overview + "</strong><br/><hr/>");
         tooltip.append("<tt>");
         String[] lines = issue.details.split("\\n");
